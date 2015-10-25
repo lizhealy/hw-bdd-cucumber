@@ -30,22 +30,28 @@ end
 #  "When I check the following ratings: G"
 
 When /I (un)?check the following ratings: (.*)/ do |uncheck, rating_list|
-  rating_list.split(",").each do |rating|
-    rating = rating.strip
-    if uncheck == "un"
-       step %Q{I uncheck "ratings_#{field}"}
-       step %Q{the "ratings_#{field}" checkbox should not be checked}
-    else
-      step %Q{I check "ratings_#{field}"}
-      step %Q{the "ratings_#{field}" checkbox should be checked}
+  rating_list.delete!("\"")
+  if uncheck.nil?
+    rating_list.split(',').each do |rating|
+      check("ratings["+rating.strip+"]")
+    end
+  else
+    rating_list.split(',').each do |rating|
+      uncheck("ratings["+rating.strip+"]")
     end
   end
 end
 
 
-Then /I should see all the movies/ do
-  Movie.find_each do |movie|
-    page.should have_content(movie.title)
+Then /I should see all of the movies/ do
+  all_movies = Movie.all
+  all_rows = 11
+  if all_movies.size == all_rows
+    all_movies.each do |movie|
+      assert page.body =~ /#{movie.title}/m
+    end
+  else
+    false
   end
 end
 
